@@ -12,7 +12,7 @@ logs/
 
 
 # Raw datasets
-data/raw/
+data/
 
 # dbt generated files
 target/
