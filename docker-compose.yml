@@ -1,0 +1,14 @@
+services:
+  duckdb:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dbt-duckdb
+    volumes:
+      - ./data:/data
+    working_dir: /data
+    network_mode: host
+    ports:
+      - "4213:4213"
+    stdin_open: true
+    tty: true
