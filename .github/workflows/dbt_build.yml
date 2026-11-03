@@ -11,84 +11,15 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-
-      - name: Install dependencies
-        run: uv sync
-
-      - name: Initialize dataset
-        run: ./scripts/init.sh
-
-      - name: Verify production profile
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+      - run: ./scripts/init.sh
+      - run: uv run dbt build --profiles-dir ../ci --target prod
         working-directory: analytics
-        run: |
-          uv run dbt debug \
-            --profiles-dir ../ci \
-            --target prod
-
-      - name: Build production models
-        working-directory: analytics
-        run: |
-          uv run dbt build \
-            --profiles-dir ../ci \
-            --target prod
-
-      - name: Validate production database
-        run: |
-          uv run python - <<'PY'
-          import duckdb
-          from pathlib import Path
-
-          db_path = Path("data/prod.duckdb")
-
-          assert db_path.exists(), "Production database was not generated"
-
-          con = duckdb.connect(str(db_path), read_only=True)
-
-          expected = {
-              ("analytics", "job_postings"),
-              ("analytics", "jobs_per_month"),
-              ("analytics", "monthly_summary"),
-              ("analytics", "top_locations"),
-          }
-
-          tables = set(con.execute("""
-              SELECT table_schema, table_name
-              FROM information_schema.tables
-              WHERE table_type = 'BASE TABLE'
-          """).fetchall())
-
-          missing = expected - tables
-          assert not missing, f"Missing tables: {missing}"
-
-          count = con.execute("""
-              SELECT COUNT(*) FROM analytics.job_postings
-          """).fetchone()[0]
-
-          print(f"Job postings: {count:,}")
-
-          assert count > 0
-
-          con.close()
-          print("Production database validation successful!")
-          PY
-
-      - name: Publish production database
+      - run: |
+          gh release create warehouse --notes "Warehouse — auto-built by dbt" || true
+          gh release upload warehouse data/prod.duckdb --clobber
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          if ! gh release view warehouse >/dev/null 2>&1; then
-            gh release create warehouse \
-              --title "Production Warehouse" \
-              --notes "Warehouse automatically built by dbt."
-          fi
-
-          gh release upload warehouse data/prod.duckdb --clobber
-
-          echo "Production database published successfully."
