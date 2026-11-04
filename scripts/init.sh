@@ -2,7 +2,7 @@
 
 set -e
 
-REPO="zablon-oigo/postgres-elt"
+REPO="zablon-oigo/dbt-duckdb-analytics-pipeline"
 TAG="dataset-v1"
 
 BASE="https://github.com/${REPO}/releases/download/${TAG}"
