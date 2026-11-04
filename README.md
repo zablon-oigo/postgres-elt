@@ -14,6 +14,9 @@ This project implements an end-to-end job posting analytics pipeline that proces
 
 ### Architecture Diagram
 
+<img width="935" height="288" alt="dbt excalidraw" src="https://github.com/user-attachments/assets/31a4ddb1-f013-4e9b-bd57-941b1d221d9f" />
+
+
 ### Project Setup
 
 ### 1. Clone the project
